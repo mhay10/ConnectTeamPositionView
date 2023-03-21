@@ -14,4 +14,4 @@ Part Two: Make the data look pretty
  1. Open the 'PositionView.xlsx' and open the 'Shifts' worksheet
  2. Open the 'shifts.csv' file in Excel as well
  3. Copy the data from 'shifts.csv' to the table in 'PositionView.xlsx'
-    a. Be sure to copy only the formula and not the formatting as well.
+    a. If you want the table to look pretty, copy only the formula and not the formatting
