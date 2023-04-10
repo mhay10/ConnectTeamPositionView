@@ -11,7 +11,6 @@ Part One: Collect the data
  3. Click on the position view button and save the 'shifts.csv'
 
 Part Two: Make the data look pretty
- 1. Open the 'PositionView.xlsx' and open the 'Shifts' worksheet
- 2. Open the 'shifts.csv' file in Excel as well
- 3. Copy the data from 'shifts.csv' to the table in 'PositionView.xlsx'
-    a. If you want the table to look pretty, copy only the formula and not the formatting
+  1. Drag the shifts.csv file onto 'position_view.exe'
+    a. If Windows complains about running the app, allow it and continue
+  2. Wait a few seconds and a graph should show up with everyone's schedules
