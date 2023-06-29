@@ -17,6 +17,7 @@ function main() {
   button.addEventListener("click", async function (e) {
     // Shifts
     console.log("%c [•_•] Getting shifts...", "color:green;");
+    console.log("%c [-_-] This can take a while...", "color:yellow;");
     const shifts = await getShifts();
 
     // Positions
