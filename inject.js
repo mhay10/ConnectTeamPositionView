@@ -184,7 +184,7 @@ async function getShifts(e) {
   // Limit iterations to prevent infinite loop when using different schedules
   var maxIterations = 100;
   var iterations = 0;
-  while (grid.length != users.length) {
+  while (grid.length != users.length && iterations < maxIterations) {
     const scrollContainer = document.querySelector(
       "div.shift-scheduler-user-instance"
     );
@@ -202,12 +202,7 @@ async function getShifts(e) {
         grid.push(elem);
       }
     });
-	if (iterations == maxIterations) {
-		break;
-	}
-	else {
-		iterations = iterations + 1;
-	}
+	iterations += 1;
   }
 
   // Return only ones for current day
