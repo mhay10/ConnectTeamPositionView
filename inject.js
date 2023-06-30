@@ -4,6 +4,9 @@ function sleep(ms) {
   });
 }
 
+// when true, useful console.log statements will be printed to assist in debugging
+const debugMode = false;
+
 // Tries to take credit for everyone else's work
 function main() {
   console.log(
@@ -39,7 +42,7 @@ function main() {
   container.appendChild(button);
 }
 
-// Import CSV into excel for now
+// Import CSV into excel for now  
 function exportCSV(positionShifts) {
   // Create CSV text
   var csvString = "";
@@ -135,15 +138,15 @@ async function sortShifts(allShifts, positions) {
   return positionShifts;
 }
 
-// Where do people work?
+// Obtain position names from collected shifts
 function getPositions(allShifts) {
   const positions = new Set();
   for (var [name, shifts] of Object.entries(allShifts)) {
     shifts.forEach(function (shift) {
-      const posName = shift.innerText
-        .split(/\d(a|p)/)
-        .at(-1)
-        .trim();
+      if (debugMode) console.log(shift.innerHTML)
+      // Pull shiftname from innerHTML (doublecheck regex here if shifts aren't showing up)
+      const posName = shift.innerHTML.match(/">([-_ a-zA-Z0-9\/]+)<\/div>/)[1]
+      if (debugMode) console.log(posName)
       positions.add(posName);
     });
   }
@@ -186,6 +189,7 @@ async function getShifts(e) {
   var maxIterations = 100;
   var iterations = 0;
   while (grid.length != users.length && iterations < maxIterations) {
+    // set up scrolling behavior
     const scrollContainer = document.querySelector(
       "div.shift-scheduler-user-instance"
     );
@@ -193,10 +197,11 @@ async function getShifts(e) {
       return sum + elem.scrollHeight * 2;
     }, 0);
 
+    // scroll and wait for elements to load
     scrollContainer.scrollBy(0, scrollHeight);
-	
     await sleep(100);
 
+    // Get the new elements that have loaded
     const subgrid = [...gridContainer.querySelectorAll("div[data-index]")];
     subgrid.forEach(function (elem) {
       if (!grid.includes(elem) && elem.innerText != "Open to claim") {
@@ -218,7 +223,7 @@ async function getShifts(e) {
     ];
     shifts[name] = times;
   });
-
+  if (debugMode) console.log(shifts)
   return shifts;
 }
 
