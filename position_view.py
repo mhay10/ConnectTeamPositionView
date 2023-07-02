@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-import datetime as dt
+from datetime import datetime as dt
 import pandas as pd
 import numpy as np
 import sys
@@ -61,8 +61,8 @@ def main(argv):
     # Loop through the rows of the shifts and plot a horizontal bar for each row
     for i, row in shiftData.iterrows():
         shifts = shiftData[shiftData.Position == row.Position]
-        start = pd.to_datetime(row["Start"])
-        end = pd.to_datetime(row["End"])
+        start = dt.strptime(row["Start"], "%a %b %d %Y %H:%M:%S GMT%z (%Z)")
+        end = dt.strptime(row["End"], "%a %b %d %Y %H:%M:%S GMT%z (%Z)")
         duration = end - start
 
         bar = ax.broken_barh(
@@ -79,7 +79,7 @@ def main(argv):
             ax.text(
                 start.hour + start.minute / 60, # start time
                 i+0.075,
-                dt.datetime.strftime(start, "%I:%M %p"),
+                dt.strftime(start, "%I:%M %p"),
                 fontsize=8,
                 weight="bold",
                 ha="left",
@@ -90,7 +90,7 @@ def main(argv):
             ax.text(
                 start.hour + start.minute / 60, # start time
                 i+0.075,
-                dt.datetime.strftime(start, "%I:%M %p"),
+                dt.strftime(start, "%I:%M %p"),
                 fontsize=8,
                 weight="bold",
                 ha="right",
@@ -113,7 +113,7 @@ def main(argv):
             ax.text(
                 end.hour + end.minute / 60, # end time
                 i+0.075,
-                dt.datetime.strftime(end, "%I:%M %p"),
+                dt.strftime(end, "%I:%M %p"),
                 fontsize=8,
                 weight="bold",
                 ha="right",
@@ -124,7 +124,7 @@ def main(argv):
             ax.text(
                 end.hour + end.minute / 60, # end time
                 i+0.075,
-                dt.datetime.strftime(end, "%I:%M %p"),
+                dt.strftime(end, "%I:%M %p"),
                 fontsize=8,
                 weight="bold",
                 ha="left",

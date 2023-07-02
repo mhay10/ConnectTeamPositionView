@@ -49,8 +49,8 @@ function exportCSV(positionShifts) {
   for (var [position, shifts] of Object.entries(positionShifts)) {
     for (var shift of shifts) {
       const user = shift.user.match(/^\w+ \w/)[0];
-      const start = moment(shift.start).format("HH:mm");
-      const end = moment(shift.end).format("HH:mm");
+      const start = shift.start;
+      const end = shift.end;
 
       var csvRow = [position, user, start, end];
       csvString += csvRow + "\n";
