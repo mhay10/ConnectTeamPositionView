@@ -1,6 +1,6 @@
 {
     "name": "Connecteam Position View",
-    "version": "0.0.0.2",
+    "version": "0.0.5",
     "description": "Automaticaly injects the necessary code to allow position view csv download",
     "manifest_version": 3,
     "permissions": ["storage", "tabs", "activeTab", "scripting"],
@@ -11,6 +11,10 @@
             "js": ["pageAction.js"],
             "run_at": "document_end"
         }
-    ]
+    ],
+    "background": {
+        "service_worker": "background.js",
+        "type": "module"
+    }
 
 }

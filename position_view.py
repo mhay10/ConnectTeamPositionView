@@ -3,6 +3,7 @@ from datetime import datetime as dt
 import pandas as pd
 import numpy as np
 import sys
+import re
 
 # Create color for each position
 def get_lexographic_value(s: str):
@@ -152,7 +153,8 @@ def main(argv):
     ax.set_xticks(minor_xticks, minor=True)
 
     # Set the title and axis labels
-    ax.set_title("Position View")
+    titleName = re.search(r'Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday', argv[1])[0]
+    ax.set_title("Position View - " + titleName)
 
     # Invert y-axis
     ax.invert_yaxis()
