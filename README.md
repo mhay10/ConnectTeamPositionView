@@ -12,10 +12,9 @@ Installing the Extension:
   5. Ensure that the extension is enabled
 
 Usage:
-  1. Open a connecteam shift scheduler page
-  2. Click on the "Today" button in the top right
-  3. Wait for the `shifts-today.csv` file to download
-    - If you want the reset of the week, scroll to the top of the page and click the "Rest of week" button
-    - Wait for all shift data files to download
+  1. Open a connecteam shift scheduler page <br>
+    a. Click "PV Today" in the top right to generate todays schedule <br>
+    b. Click "PV Week" in the top right to generate the schedules for all the days of the week.
+  3. Wait for the `shifts-day.csv` file(s) to download
   4. Drag each downloaded `csv` file over the provided `position_view.exe` file to convert the data to an image
     - If you would like, you can then download the image to save it elsewhere
