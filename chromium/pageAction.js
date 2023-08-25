@@ -116,7 +116,10 @@ function makeDayButton() {
 	const button = document.createElement("button");
 	button.innerHTML = "Today";
 	button.addEventListener("click", async function(e) {
-    const dayOfWeek = new Date().getDay();
+    	
+		// Get day of week to name output file
+		const dayOfWeek = getDayOfWeek();
+		
 		// Shifts
 		console.log("%c [•_•] Getting todays shifts...", "color:green;");
 		console.log("%c [-_-] This can take a while...", "color:yellow;");
@@ -157,32 +160,32 @@ function makeWeekButton() {
 	// Wait to allow page content to finish loading.
 	await sleep(1000);
 
-    // Start week cycle
-    const dayOfWeek = new Date().getDay();
-    var currentDay = dayOfWeek + 1;
+    // Start the cycle for the current day
+    var currentDay = getDayOfWeek()
 
     for (currentDay; currentDay < 7; currentDay++) {
 
-      moveTodayBoxes();
+		// This will move the today boxes over to the left, and failing that create new ones on sunday
+		moveTodayBoxes();
 
-      // Shifts
-      console.log("%c [•_•] Getting this weeks shifts...", "color:green;");
-      console.log("%c [-_-] This can take a while...", "color:yellow;");
-      const shifts = await getShifts();
+		// Shifts
+		console.log("%c [•_•] Getting this weeks shifts...", "color:green;");
+		console.log("%c [-_-] This can take a while...", "color:yellow;");
+		const shifts = await getShifts();
 
-      // Positions
-      console.log("%c [•_•] Getting positions...", "color:green;");
-      const positions = getPositions(shifts);
+		// Positions
+		console.log("%c [•_•] Getting positions...", "color:green;");
+		const positions = getPositions(shifts);
 
-      console.log("%c [ò_ó] My wait shall end shortly...", "color:red;");
+		console.log("%c [ò_ó] My wait shall end shortly...", "color:red;");
 
-      // Merge the two
-      console.log("%c [•_•] Sorting positions...", "color:green;");
-      const posShifts = await sortShifts(shifts, positions);
+		// Merge the two
+		console.log("%c [•_•] Sorting positions...", "color:green;");
+		const posShifts = await sortShifts(shifts, positions);
 
-      // For now, export CSV
-      console.log("%c [•_•] Exporting to CSV...", "color:green;");
-      await exportCSVWeek(posShifts, currentDay);
+		// For now, export CSV
+		console.log("%c [•_•] Exporting to CSV...", "color:green;");
+		await exportCSVWeek(posShifts, currentDay);
     }
 
 	
@@ -466,6 +469,22 @@ function moveTodayBoxes() {
 		  multiUserCells[0].classList.add('today-box');
 		}
 	  });
+	}
+}
+
+// Abstract obtaining the day of the week to provide better compatibilit with both mods
+function getDayOfWeek() {
+	// gather all today-boxes
+	const todayBoxes = document.querySelectorAll('.today-box');
+
+	// Return the current day if the displayed week is this week
+	if (todayBoxes.length > 0) {
+		return new Date().getDay();
+	}
+
+	// Return sunday if the displayed week is some past or future week
+	else {
+		return 0;
 	}
 }
 
