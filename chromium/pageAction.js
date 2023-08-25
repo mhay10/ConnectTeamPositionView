@@ -29,7 +29,7 @@ const debugMode = true;
 
 // Set the scale for zooming out
 // May need adjustment for larger schedules or smaller screens
-const zoomOutScale = 0.25;
+const zoomOutScale = 0.15;
 
 
 
