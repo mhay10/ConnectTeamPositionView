@@ -29,7 +29,7 @@ const debugMode = true;
 
 // Set the scale for zooming out
 // May need adjustment for larger schedules or smaller screens
-const zoomOutScale = 0.25; 
+const zoomOutScale = 0.25;
 
 
 
@@ -40,46 +40,46 @@ const zoomOutScale = 0.25;
 /////////////////////////////
 function actionTiming() {
 
-  console.log("%c [Θ_Θ] Watching connecteam SPA for schedules...", "color:green;");
+	console.log("%c [Θ_Θ] Watching connecteam SPA for schedules...", "color:green;");
 
-  // Only run if document.url indicates shift scheduler:
-  var url = document.URL;
-  console.log(url);
+	// Only run if document.url indicates shift scheduler:
+	var url = document.URL;
+	console.log(url);
 
-  // observer waits for the button placement element to fully load before running inject
-  const observer = new MutationObserver(function(mutationsList) {
-    for (let mutation of mutationsList) {
-      if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+	// observer waits for the button placement element to fully load before running inject
+	const observer = new MutationObserver(function(mutationsList) {
+		for (let mutation of mutationsList) {
+			if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
 
-        // Only continue of the destination div is present
-        const container = document.getElementsByClassName("multi-user-row-header")[0];
-        if (container) {
-          inject();
-          observer.disconnect(); // stop the observer after success.
-        }
-      }
-    }
-  })
+				// Only continue of the destination div is present
+				const container = document.getElementsByClassName("multi-user-row-header")[0];
+				if (container) {
+					inject();
+					observer.disconnect(); // stop the observer after success.
+				}
+			}
+		}
+	})
 
-  // Check if page is valid immediately
-  if (url.match(/shiftscheduler/) != null) {
-    console.log("%c [Θ_Θ] Scheduling page located, waiting for element...", "color:green;");
-    
-    // start observer and wait
-    observer.observe(document, { childList: true, subtree: true });
-  }
+	// Check if page is valid immediately
+	if (url.match(/shiftscheduler/) != null) {
+		console.log("%c [Θ_Θ] Scheduling page located, waiting for element...", "color:green;");
 
-  // Check url after page changes
-  window.onhashchange = function() {
-    url = document.URL;
+		// start observer and wait
+		observer.observe(document, { childList: true, subtree: true });
+	}
 
-    if (url.match(/shiftscheduler/) != null) {
-      console.log("%c [Θ_Θ] Scheduling page located, waiting for element...", "color:green;");
+	// Check url after page changes
+	window.onhashchange = function() {
+		url = document.URL;
 
-      // start observer and wait
-      observer.observe(document, { childList: true, subtree: true });
-    }
-  }
+		if (url.match(/shiftscheduler/) != null) {
+			console.log("%c [Θ_Θ] Scheduling page located, waiting for element...", "color:green;");
+
+			// start observer and wait
+			observer.observe(document, { childList: true, subtree: true });
+		}
+	}
 }
 
 
@@ -94,32 +94,30 @@ const maxRuns = 1;
 
 // Primary functionality of script
 function inject() {
-  // Limit number of times this script can run
+	// Limit number of times this script can run
 
-  if (runTimes < maxRuns) {
-    runTimes++;
+	if (runTimes < maxRuns) {
+		runTimes++;
 
-    console.log("%c [O_O] Element found! Placing the button...", "color:green;");
+		console.log("%c [O_O] Element found! Placing the button...", "color:green;");
 
-	// delete search box to make buttons fit better
-	removeSearchButton();
-
-	// Make buttons
-    makeDayButton();
-    makeWeekButton();
-  }
+		// Make buttons
+		makeDayButton();
+		makeWeekButton();
+	}
 }
 
 // Handle creation of the day button
 function makeDayButton() {
-  // Add button and set trigger
+	// Add button and set trigger
 	const button = document.createElement("button");
-	button.innerHTML = "Today";
+	button.innerHTML = "PV Today";
+	button.classList.add("connecteam-custom-btn")
 	button.addEventListener("click", async function(e) {
-    	
+
 		// Get day of week to name output file
 		const dayOfWeek = getDayOfWeek();
-		
+
 		// Shifts
 		console.log("%c [•_•] Getting todays shifts...", "color:green;");
 		console.log("%c [-_-] This can take a while...", "color:yellow;");
@@ -140,63 +138,64 @@ function makeDayButton() {
 		await exportCSVWeek(posShifts, dayOfWeek);
 	});
 
-	const container = document.getElementsByClassName("multi-user-row-header")[0];
+	const container = document.getElementsByClassName("buttons")[0];
 	container.appendChild(button);
 }
 
 // Handle creation of week button
 function makeWeekButton() {
-  // Add button and set trigger
+	// Add button and set trigger
 	const buttonWeek = document.createElement("button");
-	buttonWeek.innerHTML = "Rest of week";
+	buttonWeek.innerHTML = "PV Week";
+	buttonWeek.classList.add("connecteam-custom-btn")
 	buttonWeek.addEventListener("click", async function(e) {
 
-    // We must zoom out the page so that the entire DOM is visible at once
-	// This is because we will be modifiying the DOM with moveTodayBoxes(), this must be able to see the entire DOM
-	// We are sending a message to a background script to handle the chrome.tabs api
-	if (debugMode) console.log("Sending Zoom out message...");
-	chrome.runtime.sendMessage({ action: "zoomOut", scalar: zoomOutScale });
+		// We must zoom out the page so that the entire DOM is visible at once
+		// This is because we will be modifiying the DOM with moveTodayBoxes(), this must be able to see the entire DOM
+		// We are sending a message to a background script to handle the chrome.tabs api
+		if (debugMode) console.log("Sending Zoom out message...");
+		chrome.runtime.sendMessage({ action: "zoomOut", scalar: zoomOutScale });
 
-	// Wait to allow page content to finish loading.
-	await sleep(1000);
+		// Wait to allow page content to finish loading.
+		await sleep(1000);
 
-    // Start the cycle for the current day
-    var currentDay = getDayOfWeek()
+		// Start the cycle for the current day
+		var currentDay = getDayOfWeek()
 
-    for (currentDay; currentDay < 7; currentDay++) {
+		for (currentDay; currentDay < 7; currentDay++) {
 
-		// This will move the today boxes over to the left, and failing that create new ones on sunday
-		moveTodayBoxes();
+			// This will move the today boxes over to the left, and failing that create new ones on sunday
+			moveTodayBoxes();
 
-		// Shifts
-		console.log("%c [•_•] Getting this weeks shifts...", "color:green;");
-		console.log("%c [-_-] This can take a while...", "color:yellow;");
-		const shifts = await getShifts();
+			// Shifts
+			console.log("%c [•_•] Getting this weeks shifts...", "color:green;");
+			console.log("%c [-_-] This can take a while...", "color:yellow;");
+			const shifts = await getShifts();
 
-		// Positions
-		console.log("%c [•_•] Getting positions...", "color:green;");
-		const positions = getPositions(shifts);
+			// Positions
+			console.log("%c [•_•] Getting positions...", "color:green;");
+			const positions = getPositions(shifts);
 
-		console.log("%c [ò_ó] My wait shall end shortly...", "color:red;");
+			console.log("%c [ò_ó] My wait shall end shortly...", "color:red;");
 
-		// Merge the two
-		console.log("%c [•_•] Sorting positions...", "color:green;");
-		const posShifts = await sortShifts(shifts, positions);
+			// Merge the two
+			console.log("%c [•_•] Sorting positions...", "color:green;");
+			const posShifts = await sortShifts(shifts, positions);
 
-		// For now, export CSV
-		console.log("%c [•_•] Exporting to CSV...", "color:green;");
-		await exportCSVWeek(posShifts, currentDay);
-    }
+			// For now, export CSV
+			console.log("%c [•_•] Exporting to CSV...", "color:green;");
+			await exportCSVWeek(posShifts, currentDay);
+		}
 
-	
-	// Send message to zoom back in
-	await sleep(1000);
-	if (debugMode) console.log("Sending Zoom in message...");
-	chrome.runtime.sendMessage({ action: "zoomIn" });
-    
+
+		// Send message to zoom back in
+		await sleep(1000);
+		if (debugMode) console.log("Sending Zoom in message...");
+		chrome.runtime.sendMessage({ action: "zoomIn" });
+
 	});
 
-	const container = document.getElementsByClassName("multi-user-row-header")[0];
+	const container = document.getElementsByClassName("buttons")[0];
 	container.appendChild(buttonWeek);
 }
 
@@ -388,8 +387,8 @@ async function getShifts(e) {
 			.lastChild.innerText;
 		const times = [
 			...row.firstChild
-			.querySelector("div.today-box")
-			.querySelectorAll("div.week-shift"),
+				.querySelector("div.today-box")
+				.querySelectorAll("div.week-shift"),
 		];
 		shifts[name] = times;
 	});
@@ -422,14 +421,6 @@ async function getShifts(e) {
 	return shifts;
 }
 
-// Removes search button from page to remove clutter
-function removeSearchButton() {
-	const elements = document.getElementsByClassName("searchbox");
-	if (debugMode) console.log("Found serch boxes... Deleting:\n" + elements);
-	while (elements.length > 0) {
-		elements[0].parentNode.removeChild(elements[0]);
-	}
-}
 
 
 
@@ -442,33 +433,33 @@ function removeSearchButton() {
 // All Week behavior functions
 /////////////////////////////
 
-// Finds all elements with class "today-box" and moves them over 
+// Finds all elements with class "today-box" and moves them over
 function moveTodayBoxes() {
 	// Gather all today-boxes
 	const todayBoxes = document.querySelectorAll('.today-box');
-  
+
 	// Move all today-boxes to the right if found
 	if (todayBoxes.length > 0) {
-	  todayBoxes.forEach(todayBox => {
-		if (todayBox.nextElementSibling) {
-		  todayBox.classList.remove('today-box');
-		  todayBox.nextElementSibling.classList.add('today-box');
-		}
-	  });
+		todayBoxes.forEach(todayBox => {
+			if (todayBox.nextElementSibling) {
+				todayBox.classList.remove('today-box');
+				todayBox.nextElementSibling.classList.add('today-box');
+			}
+		});
 	}
-  
+
 	// Create new today-boxes on sunday if none are found (for future or past weeks)
 	if (todayBoxes.length === 0) {
-	  const calendarRows = document.querySelectorAll('.week-view-calendar-row');
-  
-	  calendarRows.forEach(calendarRow => {
-		const multiUserCells = calendarRow.querySelectorAll('.multi-user-calendar-cell');
-		const hasTodayBox = Array.from(multiUserCells).some(cell => cell.classList.contains('today-box'));
-  
-		if (!hasTodayBox && multiUserCells.length > 0) {
-		  multiUserCells[0].classList.add('today-box');
-		}
-	  });
+		const calendarRows = document.querySelectorAll('.week-view-calendar-row');
+
+		calendarRows.forEach(calendarRow => {
+			const multiUserCells = calendarRow.querySelectorAll('.multi-user-calendar-cell');
+			const hasTodayBox = Array.from(multiUserCells).some(cell => cell.classList.contains('today-box'));
+
+			if (!hasTodayBox && multiUserCells.length > 0) {
+				multiUserCells[0].classList.add('today-box');
+			}
+		});
 	}
 }
 
@@ -496,7 +487,7 @@ function getDayOfWeek() {
 /////////////////////////////
 function sleep(ms) {
 	return new Promise(function (r) {
-	  return setTimeout(r, ms);
+		return setTimeout(r, ms);
 	});
 }
 
