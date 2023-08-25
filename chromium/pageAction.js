@@ -52,7 +52,7 @@ function actionTiming() {
 			if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
 
 				// Only continue of the destination div is present
-				const container = document.getElementsByClassName("multi-user-row-header")[0];
+				const container = document.getElementsByClassName("buttons")[0];
 				if (container) {
 					inject();
 					observer.disconnect(); // stop the observer after success.
@@ -160,12 +160,12 @@ function makeWeekButton() {
 		await sleep(1000);
 
 		// Start the cycle for the current day
-		var currentDay = getDayOfWeek()
+		var currentDay = 0; //getDayOfWeek()
+
+		// Put all the today boxes back to sunday to capture entire week
+		resetTodayBoxes();
 
 		for (currentDay; currentDay < 7; currentDay++) {
-
-			// This will move the today boxes over to the left, and failing that create new ones on sunday
-			moveTodayBoxes();
 
 			// Shifts
 			console.log("%c [•_•] Getting this weeks shifts...", "color:green;");
@@ -185,6 +185,9 @@ function makeWeekButton() {
 			// For now, export CSV
 			console.log("%c [•_•] Exporting to CSV...", "color:green;");
 			await exportCSVWeek(posShifts, currentDay);
+
+			// This will move the today boxes over to the left, and failing that create new ones on sunday
+			moveTodayBoxes();
 		}
 
 
@@ -461,6 +464,35 @@ function moveTodayBoxes() {
 			}
 		});
 	}
+}
+
+// Moves all today-box divs to sunday
+function resetTodayBoxes() {
+	if (debugMode) console.log("Resetting Today Boxes to Sunday")
+	// Gather all today-boxes
+	const todayBoxes = document.querySelectorAll('.today-box');
+	if (debugMode) console.log(todayBoxes)
+
+	// Delete any found today-boxes
+	if (todayBoxes.length > 0) {
+		todayBoxes.forEach(todayBox => {
+			todayBox.classList.remove('today-box');
+
+		});
+	}
+
+	// Create all new today-boxes
+	const calendarRows = document.querySelectorAll('.week-view-calendar-row');
+
+	calendarRows.forEach(calendarRow => {
+		const multiUserCells = calendarRow.querySelectorAll('.multi-user-calendar-cell');
+		const hasTodayBox = Array.from(multiUserCells).some(cell => cell.classList.contains('today-box'));
+
+		if (!hasTodayBox && multiUserCells.length > 0) {
+			multiUserCells[0].classList.add('today-box');
+		}
+	});
+
 }
 
 // Abstract obtaining the day of the week to provide better compatibilit with both mods
