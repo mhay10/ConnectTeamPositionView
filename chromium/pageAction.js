@@ -25,11 +25,7 @@ Extension & Other Days:	David Jones (aclamendo)
 /////////////////////////////
 
 // when true, useful console.log statements will be printed to assist in debugging
-const debugMode = true;
-
-// Set the scale for zooming out
-// May need adjustment for larger schedules or smaller screens
-const zoomOutScale = 0.25; 
+const debugMode = false;
 
 
 
@@ -40,46 +36,46 @@ const zoomOutScale = 0.25;
 /////////////////////////////
 function actionTiming() {
 
-  console.log("%c [Θ_Θ] Watching connecteam SPA for schedules...", "color:green;");
+	console.log("%c [Θ_Θ] Watching connecteam SPA for schedules...", "color:green;");
 
-  // Only run if document.url indicates shift scheduler:
-  var url = document.URL;
-  console.log(url);
+	// Only run if document.url indicates shift scheduler:
+	var url = document.URL;
+	console.log(url);
 
-  // observer waits for the button placement element to fully load before running inject
-  const observer = new MutationObserver(function(mutationsList) {
-    for (let mutation of mutationsList) {
-      if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+	// observer waits for the button placement element to fully load before running inject
+	const observer = new MutationObserver(function(mutationsList) {
+		for (let mutation of mutationsList) {
+			if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
 
-        // Only continue of the destination div is present
-        const container = document.getElementsByClassName("multi-user-row-header")[0];
-        if (container) {
-          inject();
-          observer.disconnect(); // stop the observer after success.
-        }
-      }
-    }
-  })
+				// Only continue of the destination div is present
+				const container = document.getElementsByClassName("buttons")[0];
+				if (container) {
+					inject();
+					observer.disconnect(); // stop the observer after success.
+				}
+			}
+		}
+	})
 
-  // Check if page is valid immediately
-  if (url.match(/shiftscheduler/) != null) {
-    console.log("%c [Θ_Θ] Scheduling page located, waiting for element...", "color:green;");
-    
-    // start observer and wait
-    observer.observe(document, { childList: true, subtree: true });
-  }
+	// Check if page is valid immediately
+	if (url.match(/shiftscheduler/) != null) {
+		console.log("%c [Θ_Θ] Scheduling page located, waiting for element...", "color:green;");
 
-  // Check url after page changes
-  window.onhashchange = function() {
-    url = document.URL;
+		// start observer and wait
+		observer.observe(document, { childList: true, subtree: true });
+	}
 
-    if (url.match(/shiftscheduler/) != null) {
-      console.log("%c [Θ_Θ] Scheduling page located, waiting for element...", "color:green;");
+	// Check url after page changes
+	window.onhashchange = function() {
+		url = document.URL;
 
-      // start observer and wait
-      observer.observe(document, { childList: true, subtree: true });
-    }
-  }
+		if (url.match(/shiftscheduler/) != null) {
+			console.log("%c [Θ_Θ] Scheduling page located, waiting for element...", "color:green;");
+
+			// start observer and wait
+			observer.observe(document, { childList: true, subtree: true });
+		}
+	}
 }
 
 
@@ -94,29 +90,63 @@ const maxRuns = 1;
 
 // Primary functionality of script
 function inject() {
-  // Limit number of times this script can run
+	// Limit number of times this script can run
 
-  if (runTimes < maxRuns) {
-    runTimes++;
+	if (runTimes < maxRuns) {
+		runTimes++;
 
-    console.log("%c [O_O] Element found! Placing the button...", "color:green;");
+		console.log("%c [O_O] Element found! Placing the button...", "color:green;");
 
-	// delete search box to make buttons fit better
-	removeSearchButton();
+		// Make buttons
+		makeDayButton();
+		makeWeekButton();
 
-	// Make buttons
-    makeDayButton();
-    makeWeekButton();
-  }
+		if (debugMode) {
+			const compressBut = document.createElement("button");
+			compressBut.innerHTML = "Compress Rows";
+			compressBut.classList.add("ct-button");
+			compressBut.addEventListener("click", compressRows);
+
+			const uncompressBut = document.createElement("button");
+			uncompressBut.innerHTML = "Uncompress Rows";
+			uncompressBut.classList.add("ct-button");
+			uncompressBut.addEventListener("click", uncompressRows);
+
+			const todayBoxesBut = document.createElement("button");
+			todayBoxesBut.innerHTML = "Reset Today Boxes";
+			todayBoxesBut.classList.add("ct-button");
+			todayBoxesBut.addEventListener("click", resetTodayBoxes);
+
+			const debugNotifier = document.createElement("p");
+			debugNotifier.style.marginBottom = 0;
+			debugNotifier.innerHTML = "Debug Buttons:"
+			const debugButtons = document.createElement("div");
+			debugButtons.appendChild(debugNotifier);
+			debugButtons.appendChild(compressBut);
+			debugButtons.appendChild(uncompressBut);
+			debugButtons.appendChild(todayBoxesBut);
+
+			const container = document.getElementsByClassName("quick-actions")[0];
+			container.appendChild(debugButtons);
+		}
+	}
 }
 
 // Handle creation of the day button
 function makeDayButton() {
-  // Add button and set trigger
+	// Add button and set trigger
 	const button = document.createElement("button");
-	button.innerHTML = "Today";
+	button.innerHTML = "PV Today";
+	button.classList.add("connecteam-custom-btn")
 	button.addEventListener("click", async function(e) {
-    const dayOfWeek = new Date().getDay();
+
+		// shrink all rows so they are all visible on the DOM at once
+		compressRows();
+		await sleep(1000);
+
+		// Get day of week to name output file
+		const dayOfWeek = getDayOfWeek();
+
 		// Shifts
 		console.log("%c [•_•] Getting todays shifts...", "color:green;");
 		console.log("%c [-_-] This can take a while...", "color:yellow;");
@@ -135,65 +165,70 @@ function makeDayButton() {
 		// For now, export CSV
 		console.log("%c [•_•] Exporting to CSV...", "color:green;");
 		await exportCSVWeek(posShifts, dayOfWeek);
+
+		// Fix all rows back to normal
+		await sleep(1000);
+		uncompressRows();
+
 	});
 
-	const container = document.getElementsByClassName("multi-user-row-header")[0];
+	const container = document.getElementsByClassName("buttons")[0];
 	container.appendChild(button);
 }
 
 // Handle creation of week button
 function makeWeekButton() {
-  // Add button and set trigger
+	// Add button and set trigger
 	const buttonWeek = document.createElement("button");
-	buttonWeek.innerHTML = "Rest of week";
+	buttonWeek.innerHTML = "PV Week";
+	buttonWeek.classList.add("connecteam-custom-btn")
 	buttonWeek.addEventListener("click", async function(e) {
 
-    // We must zoom out the page so that the entire DOM is visible at once
-	// This is because we will be modifiying the DOM with moveTodayBoxes(), this must be able to see the entire DOM
-	// We are sending a message to a background script to handle the chrome.tabs api
-	if (debugMode) console.log("Sending Zoom out message...");
-	chrome.runtime.sendMessage({ action: "zoomOut", scalar: zoomOutScale });
 
-	// Wait to allow page content to finish loading.
-	await sleep(1000);
+		// shrink all rows so they are all visible on the DOM at once
+		compressRows();
+		await sleep(1000);
 
-    // Start week cycle
-    const dayOfWeek = new Date().getDay();
-    var currentDay = dayOfWeek + 1;
+		// Start the cycle for the current day
+		var currentDay = 0;
 
-    for (currentDay; currentDay < 7; currentDay++) {
+		// Move todayBoxes to sunday
+		resetTodayBoxes();
+		await sleep(1000);
 
-      moveTodayBoxes();
+		for (currentDay; currentDay < 7; currentDay++) {
 
-      // Shifts
-      console.log("%c [•_•] Getting this weeks shifts...", "color:green;");
-      console.log("%c [-_-] This can take a while...", "color:yellow;");
-      const shifts = await getShifts();
+			// Shifts
+			console.log("%c [•_•] Getting this weeks shifts...", "color:green;");
+			console.log("%c [-_-] This can take a while...", "color:yellow;");
+			const shifts = await getShifts();
 
-      // Positions
-      console.log("%c [•_•] Getting positions...", "color:green;");
-      const positions = getPositions(shifts);
+			// Positions
+			console.log("%c [•_•] Getting positions...", "color:green;");
+			const positions = getPositions(shifts);
 
-      console.log("%c [ò_ó] My wait shall end shortly...", "color:red;");
+			console.log("%c [ò_ó] My wait shall end shortly...", "color:red;");
 
-      // Merge the two
-      console.log("%c [•_•] Sorting positions...", "color:green;");
-      const posShifts = await sortShifts(shifts, positions);
+			// Merge the two
+			console.log("%c [•_•] Sorting positions...", "color:green;");
+			const posShifts = await sortShifts(shifts, positions);
 
-      // For now, export CSV
-      console.log("%c [•_•] Exporting to CSV...", "color:green;");
-      await exportCSVWeek(posShifts, currentDay);
-    }
+			// For now, export CSV
+			console.log("%c [•_•] Exporting to CSV...", "color:green;");
+			await exportCSVWeek(posShifts, currentDay);
 
-	
-	// Send message to zoom back in
-	await sleep(1000);
-	if (debugMode) console.log("Sending Zoom in message...");
-	chrome.runtime.sendMessage({ action: "zoomIn" });
-    
+			// This will move the today boxes over to the left, and failing that create new ones on sunday
+			moveTodayBoxes();
+		}
+
+
+		// Fix all rows back to normal
+		await sleep(1000);
+		uncompressRows();
+
 	});
 
-	const container = document.getElementsByClassName("multi-user-row-header")[0];
+	const container = document.getElementsByClassName("buttons")[0];
 	container.appendChild(buttonWeek);
 }
 
@@ -313,8 +348,8 @@ function getPositions(allShifts) {
 	for (var [name, shifts] of Object.entries(allShifts)) {
 		shifts.forEach(function(shift) {
 			if (debugMode) console.log(shift.innerHTML)
-			// Pull shiftname from innerHTML (doublecheck regex here if shifts aren't showing up)
-			const posName = shift.innerHTML.match(/">([-_ a-zA-Z0-9\/]+)<\/div>/)[1];
+			// Pull shiftname from innerHTML (monster of a regex, may fail depending on how shifts are named, and any changes to the SPA)
+			const posName = shift.innerHTML.match(/<div class="tippy-child-container"><div style="overflow: hidden; overflow-wrap: break-word; text-overflow: ellipsis; white-space: nowrap; word-break: break-all;">([-_ a-zA-Z0-9\/!"#$%&'\(\)\*\+`\-\.:;\?@\[\]\\^\{\}\|~]+)<\/div>/)[1];
 			if (debugMode) console.log(posName)
 			positions.add(posName);
 		});
@@ -365,7 +400,7 @@ async function getShifts(e) {
 		}, 0);
 
 		// scroll and wait for elements to load
-		scrollContainer.scrollBy(0, scrollHeight);
+		//scrollContainer.scrollBy(0, scrollHeight);
 		await sleep(100);
 
 		// Get the new elements that have loaded
@@ -383,10 +418,13 @@ async function getShifts(e) {
 	grid.forEach(function(row) {
 		const name = row.firstChild.querySelector("div.multi-user-row-header")
 			.lastChild.innerText;
+
+		if(debugMode) console.log("in getShifts:\n");
+		if(debugMode) console.log(row.firstChild.querySelectorAll("div.today-box"));
 		const times = [
 			...row.firstChild
-			.querySelector("div.today-box")
-			.querySelectorAll("div.week-shift"),
+				.querySelector("div.today-box")
+				.querySelectorAll("div.week-shift"),
 		];
 		shifts[name] = times;
 	});
@@ -419,16 +457,45 @@ async function getShifts(e) {
 	return shifts;
 }
 
-// Removes search button from page to remove clutter
-function removeSearchButton() {
-	const elements = document.getElementsByClassName("searchbox");
-	if (debugMode) console.log("Found serch boxes... Deleting:\n" + elements);
-	while (elements.length > 0) {
-		elements[0].parentNode.removeChild(elements[0]);
+// Compress all the rows in the schedule so they all fit on the screen at once
+async function compressRows() {
+
+	// modify all visible elements to make them smaller
+	function modRows() {
+		// Get all the rows from their class
+		const elements = document.querySelectorAll('.week-view-calendar-row');
+		elements.forEach(function (element) {
+			// add style atttribute to shrink the rows
+			element.style.height = '1px';
+		});
 	}
+
+	// Use a mutation observer because the new rows only get added to the DOM when the rows above are shrunk
+	const observer = new MutationObserver(function (mutationsList, observer) {
+		// Call the modifyElements function whenever a mutation occurs
+		modRows();
+	});
+
+	// start the observer
+	observer.observe(document.body, { subtree: true, childList: true });
+
+	// Force the call to happen once to begin the mutation chain
+	modRows();
+
+	// Wait for compression, then stop observer
+	await sleep(1000);
+	observer.disconnect();
+
 }
 
-
+// Undoes the effect of compressRows
+async function uncompressRows() {
+	var elements = document.querySelectorAll('.week-view-calendar-row');
+  	elements.forEach(function (element) {
+		// Remove the height attribute to undo the change
+		element.style.removeProperty('height');
+  	});
+}
 
 
 
@@ -439,33 +506,83 @@ function removeSearchButton() {
 // All Week behavior functions
 /////////////////////////////
 
-// Finds all elements with class "today-box" and moves them over 
+// Finds all elements with class "today-box" and moves them over
 function moveTodayBoxes() {
 	// Gather all today-boxes
 	const todayBoxes = document.querySelectorAll('.today-box');
-  
+
 	// Move all today-boxes to the right if found
 	if (todayBoxes.length > 0) {
-	  todayBoxes.forEach(todayBox => {
-		if (todayBox.nextElementSibling) {
-		  todayBox.classList.remove('today-box');
-		  todayBox.nextElementSibling.classList.add('today-box');
-		}
-	  });
+		todayBoxes.forEach(todayBox => {
+			if (todayBox.nextElementSibling) {
+				todayBox.classList.remove('today-box');
+				todayBox.nextElementSibling.classList.add('today-box');
+			}
+		});
 	}
-  
+
 	// Create new today-boxes on sunday if none are found (for future or past weeks)
 	if (todayBoxes.length === 0) {
-	  const calendarRows = document.querySelectorAll('.week-view-calendar-row');
-  
-	  calendarRows.forEach(calendarRow => {
+		const calendarRows = document.querySelectorAll('.week-view-calendar-row');
+
+		calendarRows.forEach(calendarRow => {
+			const multiUserCells = calendarRow.querySelectorAll('.multi-user-calendar-cell');
+			const hasTodayBox = Array.from(multiUserCells).some(cell => cell.classList.contains('today-box'));
+
+			if (!hasTodayBox && multiUserCells.length > 0) {
+				multiUserCells[0].classList.add('today-box');
+			}
+		});
+	}
+}
+
+// Moves all today-box divs to sunday
+function resetTodayBoxes() {
+	if (debugMode) console.log("Resetting Today Boxes to Sunday")
+	// Gather all today-boxes
+	const todayBoxes = document.querySelectorAll('.today-box');
+	if (debugMode) console.log(todayBoxes)
+
+	// Delete any found today-boxes
+	if (todayBoxes.length > 0) {
+		todayBoxes.forEach(todayBox => {
+			todayBox.classList.remove('today-box');
+			
+		});
+	}
+
+	// Create all new today-boxes
+	const calendarRows = document.querySelectorAll('.week-view-calendar-row');
+
+	calendarRows.forEach(calendarRow => {
 		const multiUserCells = calendarRow.querySelectorAll('.multi-user-calendar-cell');
 		const hasTodayBox = Array.from(multiUserCells).some(cell => cell.classList.contains('today-box'));
-  
+
 		if (!hasTodayBox && multiUserCells.length > 0) {
-		  multiUserCells[0].classList.add('today-box');
+			multiUserCells[0].classList.add('today-box');
 		}
-	  });
+	});
+
+	if (debugMode) {
+		const newBoxes = document.querySelectorAll('.today-box');
+		console.log(newBoxes);
+	}
+
+}
+
+// Abstract obtaining the day of the week to provide better compatibilit with both mods
+function getDayOfWeek() {
+	// gather all today-boxes
+	const todayBoxes = document.querySelectorAll('.today-box');
+
+	// Return the current day if the displayed week is this week
+	if (todayBoxes.length > 0) {
+		return new Date().getDay();
+	}
+
+	// Return sunday if the displayed week is some past or future week
+	else {
+		return 0;
 	}
 }
 
@@ -477,7 +594,7 @@ function moveTodayBoxes() {
 /////////////////////////////
 function sleep(ms) {
 	return new Promise(function (r) {
-	  return setTimeout(r, ms);
+		return setTimeout(r, ms);
 	});
 }
 
